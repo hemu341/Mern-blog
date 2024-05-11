@@ -15,6 +15,7 @@ mongoose.connect(process.env.MONGO).then(()=>{
 }).catch((err)=>{
     console.log(err);
 })
+
 app.listen(port,()=>{
     console.log("server is up and running on 8000..")
 })

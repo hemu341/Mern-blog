@@ -1,10 +1,48 @@
-import React from "react";
-import {Link} from "react-router-dom"
-import { Button, ButtonGroup, Label, TextInput } from 'flowbite-react'
+import React, { useState } from "react";
+import {Link,useNavigate} from "react-router-dom"
+import { Alert, Button, ButtonGroup, Label, Spinner, TextInput } from 'flowbite-react'
 
 
 
 export default function Signup() {
+  const [formData,setFormData] = useState({})
+  const [errorMessage,setErrorMessages] = useState(null)
+  const [loading,setLoading] = useState(false)
+  const navigate = useNavigate();
+
+  const handleChange=(e)=>{
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value.trim()
+    })
+  }
+  const handleSubmit= async (e)=>{
+    e.preventDefault();
+    if(!formData.username || !formData.email || !formData.password){
+      return setErrorMessages('please fill out all fields')
+    }
+    try {
+      setLoading(true)
+      setErrorMessages(null)
+      const res = await fetch('/api/auth/signup',{
+        method: 'POST',
+        headers:{ 'Content-Type':'application/json'},
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if(data.success === false){
+               return setErrorMessages(data.message)
+      }
+      setLoading(false)
+      if(res.ok){
+        navigate('/sign-in')
+      }
+    } catch (error) {
+        setErrorMessages(error.message)
+    }
+
+  }
+console.log(formData)
   return (
     <div className="min-h-screen mt-20">
       <div className='flex p-3 max-w-3xl mx-auto md:flex-row flex-col gap-5'>
@@ -13,7 +51,7 @@ export default function Signup() {
             to="/"
             className=" font-bold dark:text-white text-4xl"
           >
-            <span className="px-2 py-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg text-white">
+            <span className="px-2 py-1 bg-gradient-to-r from-teal-500 via-green-500 to-lime-500 rounded-lg text-white">
               hemanth's
             </span>
             blog
@@ -21,37 +59,54 @@ export default function Signup() {
           <p className="text-sm mt-5">This is sample blog project. You can signup with your email</p>
         </div>
         <div className="flex-1">
-          <form className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
               <Label value="your username" />
               <TextInput 
               type='text'
               placeholder='Username'
               id='username'
+              onChange={handleChange}
               />
             </div>
             <div>
               <Label value="Your email" />
               <TextInput 
-              type='text'
+              type='email'
               placeholder='name@company.com'
               id='email'
+              onChange={handleChange}
               />
             </div>
             <div>
               <Label value="your password" />
               <TextInput 
-              type='text'
+              type='password'
               placeholder='password'
               id='password'
+              onChange={handleChange}
               />
             </div>
-            <Button className='my-5' gradientDuoTone='purpleToPink' type="submit">signup</Button>
+            <Button className='my-5' gradientDuoTone='tealToLime' type="submit" disabled={loading}>
+              {
+                loading ? (<>
+                <Spinner size='sm' />
+                            <span className="pl-3">loading....</span>
+                </>
+                
+              ):'signup'
+              }
+            </Button>
           </form>
           <div>
             <span>Have an account?</span>
             <Link to='/sign-in' className="text-blue-500">signin</Link>
           </div>
+          {
+            errorMessage && (<Alert className='mt-5' color='failure'>
+              {errorMessage}
+            </Alert>)
+          }
         </div>
       </div>
     </div>
